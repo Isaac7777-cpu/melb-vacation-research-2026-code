@@ -1,6 +1,10 @@
 # Repository Layout
-- src/            # my R simulation code
-- data/           # supervisor-provided inputs (read-only, untracked unless allowed)
-- vendor/         # supervisor’s code (leave unchanged)
-- results/        # derived outputs (figures, tables, logs)
-- README.md       # this summary
+
+```
+src/            # my R simulation code
+data/           # generated data, not committed due to size.
+lib/            # supervisor’s code (leave unchanged up to formatting)
+lib_data/       # supervisor's data (leave unchanged)
+results/        # derived outputs (figures, tables, logs)
+README.md       # this summary
+```

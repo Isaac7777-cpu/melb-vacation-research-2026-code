@@ -13,7 +13,7 @@ source("BFuns.R")
 # Hyperparameters
 sigmasq <- 4 / 2
 tausq <- 0.5
-r <- 5
+r <- 5 # This is the phi parameters (the range parameters)
 theta0 <- c(r, sigmasq, tausq)
 theta.ini <- c(4.4, 0.1)
 nug <- TRUE
@@ -29,11 +29,11 @@ for (i in 1:n) {
 
 # Define the covariance matrix
 q <- length(theta0)
-eta0 <- theta0[-q]
+eta0 <- theta0[-q] # eta0 := [r, sigmasq]
 if (nug == TRUE) {
-  eta0[q - 1] = theta0[q] / (theta0[q - 1] + theta0[q])
+  eta0[q - 1] <- theta0[q] / (theta0[q - 1] + theta0[q])
 }
-cormat = cor.mat(D, eta0, cov_model, nug)
+cormat <- cor.mat(D, eta0, cov_model, nug)
 
 if (nug == TRUE) {
   Sigma0 <- (theta0[q - 1] + theta0[q]) * cormat
@@ -42,8 +42,6 @@ if (nug == TRUE) {
 }
 
 Ymat <- rmvnorm(Srep, sigma = Sigma0)
-
-# We want 400 observations for the 3x3 resolutions
 
 dd <- (loc$x^2 + loc$y^2)^.5
 Zdata <- 2 + 3 * dd + Ymat[1, ]
