@@ -54,13 +54,14 @@ MLE.fit <- function(
   opt,
   lo_bound,
   up_bound,
-  negative_log_likelihood = profile.nll
+  negative_log_likelihood = profile.nll,
+  resolution
 ) {
   m <- length(y)
   q <- length(eta.ini) + 1
   resolution_matrix <- kronecker(
     Diagonal(m),
-    Matrix(rep(1 / 9, 9), nrow = 1, sparse = TRUE)
+    Matrix(rep(1 / resolution^2, resolution^2), nrow = 1, sparse = TRUE)
   )
 
   # Optimise using R base optimisation procedure--------------------------------

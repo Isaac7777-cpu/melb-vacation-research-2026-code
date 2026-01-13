@@ -51,7 +51,8 @@ xx <- MLE.fit(
   nug = FALSE,
   "LB",
   lo.bound,
-  up.bound
+  up.bound,
+  resolution = 3
 )
 str(xx)
 #-------------------------------------------------------------------------------
