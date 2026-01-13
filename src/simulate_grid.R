@@ -13,7 +13,7 @@ coords <- as.matrix(expand.grid(grid))
 
 dist <- as.matrix(dist(coords))
 
-nug <- TRUE
+nug <- FALSE
 sigmasq <- 4 / 2
 tausq <- 0.5
 phi <- 5
@@ -56,6 +56,10 @@ ymat <- aperm(
   c(3, 1, 2)
 )
 
-save(ymat, file = sprintf("ymat_%ddraws.RData", ndraw))
+if (nug) {
+  save(ymat, file = sprintf("data/multi-res-%ddraws.RData", ndraw))
+} else {
+  save(ymat, file = sprintf("data/multi-res-%ddraws_no_nug.RData", ndraw))
+}
 
-load(file = "ymat_10000draws.RData")
+# load(file = "ymat_10000draws.RData")

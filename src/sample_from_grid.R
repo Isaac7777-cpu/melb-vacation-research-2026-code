@@ -1,4 +1,6 @@
-load(file = "data/multi-res-10000draws.RData", verbose = TRUE)
+# Pick whether to use nugget effect for the  base random field to use.
+load(file = "data/multi-res-100draws_no_nug.RData", verbose = TRUE)
+# load(file = "data/multi-res-10000draws.RData", verbose = TRUE)
 # This loads 10000 independent draw for an exponential
 # covariance gaussian random field of size 100x100.
 # The variable is called ymat.
