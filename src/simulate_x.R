@@ -2,6 +2,8 @@ source(file = "src/likelihood.R", verbose = TRUE)
 source(file = "src/restricted_likelihood.R", verbose = TRUE)
 
 library(optparse)
+library(foreach)
+library(doParallel)
 
 # Simulation Function ---------------------------------------------------------
 simulate_slice <- function(
