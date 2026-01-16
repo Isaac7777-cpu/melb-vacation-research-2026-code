@@ -155,30 +155,42 @@ sim_res <- list(
 
 set.seed(multi_resolution$seed)
 
-pb <- txtProgressBar(min = 0, max = num_sim, style = 3)
+cl <- makeCluster(opt[["num-core"]])
+registerDoParallel(opt$"num-core")
 
-for (slice_idx in seq_len(num_sim)) {
-  xx <- simulate_slice(
-    use_reml = use_reml,
-    slice_idx = slice_idx,
-    res = multi_resolution$resolution,
-    obs = multi_resolution$x_obs[slice_idx, ],
-    coord = multi_resolution$x.coord[slice_idx, , ],
-    lo.bound = c(0.00001),
-    up.bound = c(10),
-    verbose = verbose
-  )
+res_list <- foreach(
+  slice_idx = seq_len(num_sim),
+  .packages = character(0)
+) %dopar%
+  {
+    xx <- simulate_slice(
+      use_reml = use_reml,
+      slice_idx = slice_idx,
+      res = multi_resolution$resolution,
+      obs = multi_resolution$x_obs[slice_idx, ],
+      coord = multi_resolution$x.coord[slice_idx, , ],
+      lo.bound = c(0.00001),
+      up.bound = c(10),
+      verbose = verbose
+    )
 
-  sim_res$alpha0[slice_idx] <- xx$alpha0
-  sim_res$alpha0_var[slice_idx] <- xx$alpha_0_var
-  sim_res$theta[slice_idx, ] <- xx$theta
-  sim_res$converge[slice_idx] <- xx[["converge (1 = yes)"]]
-  sim_res$nll[slice_idx] <- xx$nll
+    list(
+      alpha0 = xx$alpha0,
+      alpha0_var = xx$alpha_0_var,
+      theta = xx$theta,
+      converge = xx[["converge (1 = yes)"]],
+      nll = xx$nll
+    )
+  }
 
-  setTxtProgressBar(pb, slice_idx)
-}
+stopCluster(cl)
 
-close(pb)
+# Combine
+sim_res$alpha0 <- vapply(res_list, `[[`, numeric(1), "alpha0")
+sim_res$alpha0_var <- vapply(res_list, `[[`, numeric(1), "alpha0_var")
+sim_res$converge <- vapply(res_list, `[[`, numeric(1), "converge")
+sim_res$nll <- vapply(res_list, `[[`, numeric(1), "nll")
+sim_res$theta <- do.call(rbind, lapply(res_list, `[[`, "theta"))
 
 if (use_reml) {
   saveRDS(object = sim_res, file = "data/simulation_res_reml.rds")
