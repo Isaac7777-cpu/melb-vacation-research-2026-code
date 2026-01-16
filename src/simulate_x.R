@@ -2,8 +2,7 @@ source(file = "src/likelihood.R", verbose = TRUE)
 source(file = "src/restricted_likelihood.R", verbose = TRUE)
 
 library(optparse)
-library(foreach)
-library(doParallel)
+library(parallel)
 
 # Simulation Function ---------------------------------------------------------
 simulate_slice <- function(
@@ -153,16 +152,18 @@ sim_res <- list(
   nll = rep(0.0, num_sim)
 )
 
+RNGkind(kind = "L'Ecuyer-CMRG")
 set.seed(multi_resolution$seed)
 
-cl <- makeCluster(opt[["num-core"]])
-registerDoParallel(opt$"num-core")
+num_workers <- opt[["num-core"]]
 
-res_list <- foreach(
-  slice_idx = seq_len(num_sim),
-  .packages = character(0)
-) %dopar%
-  {
+chunks <- split(
+  seq_len(num_sim),
+  cut(num_sim, breaks = num_workers, labels = FALSE)
+)
+
+worker_chunk <- function(chunk) {
+  lapply(chunk, function(slice_idx) {
     xx <- simulate_slice(
       use_reml = use_reml,
       slice_idx = slice_idx,
@@ -175,15 +176,24 @@ res_list <- foreach(
     )
 
     list(
+      i = slice_idx,
       alpha0 = xx$alpha0,
       alpha0_var = xx$alpha_0_var,
       theta = xx$theta,
       converge = xx[["converge (1 = yes)"]],
       nll = xx$nll
     )
-  }
+  })
+}
+
+res_nested <- mclapply(chunks, worker_chunk, mc.cores = num_workers)
+res_list <- do.call(c, res_nested)
 
 stopCluster(cl)
+
+# put back in order (important because chunks scramble order)
+ord <- vapply(res_list, `[[`, integer(1), "i")
+res_list <- res_list[order(ord)]
 
 # Combine
 sim_res$alpha0 <- vapply(res_list, `[[`, numeric(1), "alpha0")
