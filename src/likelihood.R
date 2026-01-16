@@ -55,7 +55,8 @@ MLE.fit <- function(
   lo_bound,
   up_bound,
   negative_log_likelihood = profile.nll,
-  resolution
+  resolution,
+  verbose = FALSE
 ) {
   m <- length(y)
   q <- length(eta.ini) + 1
@@ -102,7 +103,9 @@ MLE.fit <- function(
     )
   }
 
-  print("Finished optimising...")
+  if (verbose) {
+    print("Finished optimising...")
+  }
 
   # Extract the results---------------------------------------------------------
   eta <- prof.min$par

@@ -90,6 +90,10 @@ if (interactive()) {
   sample_obj <- list(
     seed = seed,
     alpha0 = alpha0,
+    nug = nug,
+    tausq = tausq,
+    sigmasq = sigmasq,
+    phi = phi,
     npoints = npoints,
     resolution = resolution,
     x_obs = array(dim = c(nslice, npoints)),

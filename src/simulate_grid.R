@@ -57,9 +57,23 @@ ymat <- aperm(
 )
 
 if (nug) {
-  save(ymat, file = sprintf("data/multi-res-%ddraws.RData", ndraw))
+  save(
+    ymat,
+    nug,
+    tausq,
+    sigmasq,
+    phi,
+    file = sprintf("data/multi-res-%ddraws.RData", ndraw)
+  )
 } else {
-  save(ymat, file = sprintf("data/multi-res-%ddraws_no_nug.RData", ndraw))
+  save(
+    ymat,
+    nug,
+    tausq,
+    sigmasq,
+    phi,
+    file = sprintf("data/multi-res-%ddraws_no_nug.RData", ndraw)
+  )
 }
 
 # load(file = "ymat_10000draws.RData")
