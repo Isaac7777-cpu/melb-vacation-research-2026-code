@@ -159,7 +159,7 @@ num_workers <- opt[["num-core"]]
 
 chunks <- split(
   seq_len(num_sim),
-  cut(num_sim, breaks = num_workers, labels = FALSE)
+  cut(seq_len(num_sim), breaks = num_workers, labels = FALSE)
 )
 
 worker_chunk <- function(chunk) {
@@ -188,8 +188,6 @@ worker_chunk <- function(chunk) {
 
 res_nested <- mclapply(chunks, worker_chunk, mc.cores = num_workers)
 res_list <- do.call(c, res_nested)
-
-stopCluster(cl)
 
 # put back in order (important because chunks scramble order)
 ord <- vapply(res_list, `[[`, integer(1), "i")
