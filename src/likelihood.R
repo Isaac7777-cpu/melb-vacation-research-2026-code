@@ -137,7 +137,7 @@ MLE.fit <- function(
   # suc = 1 means convergence of optimization
   rlist <- list(
     theta = theta_est,
-    suc,
+    "converge (1 = yes)" = suc,
     nll = nll,
     alpha0 = alpha_0,
     alpha_0_var = alpha_0_var,

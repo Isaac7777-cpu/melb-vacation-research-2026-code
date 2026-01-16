@@ -7,7 +7,7 @@ get_sample_from_slice <- function(
   resolution,
   verbose = FALSE
 ) {
-  # set.seed(seed = seed)
+  set.seed(seed = seed)
 
   # Obtain the basic simulation field for X(v)
   eta_field <- ymat[slice_idx, , ]
@@ -74,7 +74,7 @@ get_sample_from_slice <- function(
 # Interactive Testing Code Chunk------------------------------------------------
 if (interactive()) {
   # Pick whether to use nugget effect for the  base random field to use.
-  load(file = "data/multi-res-100draws_no_nug.RData", verbose = TRUE)
+  load(file = "data/multi-res-500draws_no_nug.RData", verbose = TRUE)
   # load(file = "data/multi-res-10000draws.RData", verbose = TRUE)
   # This loads 10000 independent draw for an exponential
   # covariance gaussian random field of size 100x100.
@@ -93,7 +93,7 @@ if (interactive()) {
     npoints = npoints,
     resolution = resolution,
     x_obs = array(dim = c(nslice, npoints)),
-    x.coord = array(dim = c(nslice, npoints, 2))
+    x.coord = array(dim = c(nslice, 2, npoints))
   )
 
   for (slice_idx in seq_len(nslice)) {

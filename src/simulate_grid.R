@@ -4,7 +4,7 @@ source("lib/BFuns.R")
 set.seed(47)
 
 n <- 100
-ndraw <- 100
+ndraw <- 500
 grid <- list(
   x = seq(from = 0, by = 1, length.out = n),
   y = seq(from = 0, by = 1, length.out = n)
@@ -14,8 +14,8 @@ coords <- as.matrix(expand.grid(grid))
 dist <- as.matrix(dist(coords))
 
 nug <- FALSE
-sigmasq <- 4 / 2
 tausq <- 0.5
+sigmasq <- 4 / 2
 phi <- 5
 
 # If we consider nugget effect, we need to correct the variance used to

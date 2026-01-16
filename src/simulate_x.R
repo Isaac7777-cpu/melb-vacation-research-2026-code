@@ -2,13 +2,16 @@
 source(file = "src/likelihood.R", verbose = TRUE)
 
 multi_resolution <- readRDS(file = "data/x_simulation.rds")
-slice_idx <- 1
+slice_idx <- 2
 
 names(multi_resolution)
 
 # The observation values and the corresponding
 # coordinate should have the same length
-stopifnot(length(multi_resolution$x_obs[slice_idx, ]) == dim(multi_resolution$x.coord)[2])
+stopifnot(
+  length(multi_resolution$x_obs[slice_idx, ]) ==
+    dim(multi_resolution$x.coord)[3]
+)
 
 # Compute the distance matrix.-------------------------------------------------
 # Note that given the model, we need to have a distance
@@ -20,7 +23,7 @@ offsets <- expand.grid(
 )
 res <- multi_resolution$resolution # Only used for short hand
 
-coarse_coords <- t(multi_resolution$x.coord[slice_idx, , ])
+coarse_coords <- multi_resolution$x.coord[slice_idx, , ]
 m <- ncol(coarse_coords)
 
 fine_coords <- matrix(NA, nrow = 2, ncol = (res**2) * m)

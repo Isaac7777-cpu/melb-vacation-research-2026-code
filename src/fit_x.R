@@ -17,10 +17,10 @@ offsets <- expand.grid(
   dx = seq(from = -half, to = half, by = 1),
   dy = seq(from = -half, to = half, by = 1)
 )
-m <- ncol(coarse_coords)
 res <- multi_resolution$resolution # Only used for short hand
 
 coarse_coords <- multi_resolution$x.coord
+m <- ncol(coarse_coords)
 
 fine_coords <- matrix(NA, nrow = 2, ncol = 9 * m)
 
