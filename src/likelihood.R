@@ -42,7 +42,7 @@ profile.nll <- function(
   white_resids <- white_y - white_1 * as.numeric(alpha_0)
 
   mll2 <- log_det_cormat + n * log(mean(white_resids^2))
-  return(mll2 / n)
+  return(0.5 * mll2)
 }
 
 MLE.fit <- function(
@@ -110,7 +110,10 @@ MLE.fit <- function(
   # Extract the results---------------------------------------------------------
   eta <- prof.min$par
   suc <- prof.min$convergence + 1
-  nll <- prof.min$value
+  # nll <- prof.min$value
+
+  # Get the actual negative log likelihood
+  nll <- 0.5 * (m * log(2 * pi) + m) + prof.min$value
 
   # Calculate the estimated parameters------------------------------------------
   r_expanded <- cor.mat(D, eta, cov_model, nug)
