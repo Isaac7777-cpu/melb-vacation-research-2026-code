@@ -1,6 +1,11 @@
 multi_resolution <- readRDS(file = "data/simulation_res.rds")
+# multi_resolution <- readRDS(file = "data/simulat_res_fake_nll.rds")
 
 all(multi_resolution$converge == 1)
+
+# Average likelihood
+exp(-mean(multi_resolution$nll / multi_resolution$npoints))
+# [1] 0.3271074
 
 # Average alpha0
 mean(multi_resolution$alpha0)
