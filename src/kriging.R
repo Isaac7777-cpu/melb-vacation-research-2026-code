@@ -1,3 +1,5 @@
+source(file = "lib/BFuns.R", verbose = TRUE)
+
 #' Calculate the variance
 cov.exponential <- function(dist, sigmasq, phi, tausq = NA) {
   cov.mat <- sigmasq * exp(-dist / phi)

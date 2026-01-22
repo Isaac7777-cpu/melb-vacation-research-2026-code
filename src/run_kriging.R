@@ -48,3 +48,65 @@ coord.cov <- cov.exponential(
 )
 c <- rowMeans(x = coord.cov)
 
+# Retrieved the covariance matrix
+m <- multi_resolution$npoints
+stopifnot(
+  "The coordinate vector should be of size 2 x npoints" = m == ncol(coord)
+)
+fine_coords <- matrix(NA, nrow = 2, ncol = (res**2) * m)
+for (i in seq_len(m)) {
+  base <- coord[, i]
+  idx <- ((res**2) * (i - 1) + 1):((res**2) * i)
+  fine_coords[, idx] <- base + t(offsets)
+}
+
+cat(sprintf("The following should form %dx%d block\n", res, res))
+print(fine_coords[, 1:9])
+
+pairwise_dist <- as.matrix(dist(t(fine_coords)))
+obs.cov.full <- sigmasq *
+  cor.mat(
+    D = pairwise_dist,
+    cov_model = "Exp",
+    eta = c(phi, sigmasq),
+    nug = FALSE
+  )
+resolution_matrix <- kronecker(
+  diag(m),
+  matrix(rep(1 / 9, 9), nrow = 1)
+)
+obs.cov <- resolution_matrix %*% obs.cov.full %*% t(resolution_matrix)
+
+# Compute the BLUP
+L <- t(chol(obs.cov))
+r <- obs - rep(alpha0, m)
+quad_term <- backsolve(r = t(L), x = forwardsolve(l = L, x = r))
+blup <- alpha0 + crossprod(c, quad_term)
+# blup <- drop(blup) # Turn to a single scalar
+
+# Compute the optimiser
+one <- rep(1, m)
+Vinv_c <- backsolve(t(L), forwardsolve(L, c))
+Vinv_one <- backsolve(t(L), forwardsolve(L, one))
+nu <- drop((1 - crossprod(one, Vinv_c)) / crossprod(one, Vinv_one))
+lambda <- Vinv_c + nu * Vinv_one
+
+stopifnot(
+  "The sum of lambda should be 1 to satisfy the constraint" = all.equal(
+    sum(lambda),
+    1.0,
+    tolerance = 1e-10
+  )
+)
+
+# Compute the BLUP variance
+blup_var <- drop(
+  cov.exponential(
+    dist = 0,
+    phi = phi,
+    sigmasq = sigmasq,
+    tausq = NA
+  ) -
+    crossprod(c, Vinv_c) +
+    nu**2 * crossprod(one, Vinv_one)
+)
