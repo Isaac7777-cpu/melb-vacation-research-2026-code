@@ -1,5 +1,12 @@
-# multi_resolution <- readRDS(file = "data/simulation_res.rds")
-multi_resolution <- readRDS(file = "data/simulation_res_reml.rds")
+# NOTE: The the numbers here are for MLE estimation. Run the code
+#       with the `_reml` suffix data file to get the results for REML.
+#       Overall, I can actually see a slightly higher variance (0.438 vs 0.404),
+#       but a much lower bias (0.0301 vs 0.0683) for phi. Similar for sigma^2,
+#       where bias is now -0.00414 while the variance increased to 0.032.
+#       However, both has a slightly higher RMSE than MLE.
+
+multi_resolution <- readRDS(file = "data/simulation_res.rds")
+# multi_resolution <- readRDS(file = "data/simulation_res_reml.rds")
 # multi_resolution <- readRDS(file = "data/simulat_res_fake_nll.rds")
 
 all(multi_resolution$converge == 1)
