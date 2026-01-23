@@ -13,7 +13,7 @@ profile.nll <- function(
   nug = FALSE
 ) {
   if (is.null(resolution_matrix) && is.null(resolution)) {
-    stop("You must supply iether `resolution_matrix` or at least `resolution`")
+    stop("You must supply either `resolution_matrix` or at least `resolution`")
   }
 
   n <- length(y)
@@ -41,9 +41,14 @@ profile.nll <- function(
   alpha_0 <- (t(white_1) %*% white_y) / (t(white_1) %*% white_1)
   white_resids <- white_y - white_1 * as.numeric(alpha_0)
 
-  mll2 <- log_det_cormat + n * log(mean(white_resids^2))
-  return(0.5 * mll2)
+  nll2 <- log_det_cormat + n * log(mean(white_resids^2))
+  return(0.5 * nll2)
 }
+
+profile.nll.correction <- function(m, val) {
+  0.5 * (m * log(2 * pi) + m) + val
+}
+
 
 MLE.fit <- function(
   y,
@@ -55,6 +60,7 @@ MLE.fit <- function(
   lo_bound,
   up_bound,
   negative_log_likelihood = profile.nll,
+  nll_correction = NULL,
   resolution,
   verbose = FALSE
 ) {
@@ -110,10 +116,13 @@ MLE.fit <- function(
   # Extract the results---------------------------------------------------------
   eta <- prof.min$par
   suc <- prof.min$convergence + 1
-  # nll <- prof.min$value
-
-  # Get the actual negative log likelihood
-  nll <- 0.5 * (m * log(2 * pi) + m) + prof.min$value
+  if (!is.null(nll_correction)) {
+    # Get the actual negative log likelihood
+    # nll <- 0.5 * (m * log(2 * pi) + m) + prof.min$value
+    nll <- nll_correction(m, prof.min$value)
+  } else {
+    nll <- prof.min$value
+  }
 
   # Calculate the estimated parameters------------------------------------------
   r_expanded <- cor.mat(D, eta, cov_model, nug)
@@ -124,9 +133,9 @@ MLE.fit <- function(
   white_y <- solve(L, y)
   alpha_0 <- (t(white_1) %*% white_y) / (t(white_1) %*% white_1)
   white_resids <- white_y - white_1 * as.numeric(alpha_0)
+  sill <- mean(white_resids^2) # This is sigma^2 (or corrected for tau^2 if nug)
 
   # Calculate the variance of the estimated parameters--------------------------
-  sill <- mean(white_resids^2)
   if (nug == TRUE) {
     nugget_effect <- sill * eta[q - 1]
     psill <- sill - nugget_effect

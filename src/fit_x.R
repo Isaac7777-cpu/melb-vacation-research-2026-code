@@ -52,7 +52,8 @@ xx <- MLE.fit(
   "LB",
   lo.bound,
   up.bound,
-  resolution = 3
+  resolution = 3,
+  nll_correction = profile.nll.correction
 )
 str(xx)
 #-------------------------------------------------------------------------------
