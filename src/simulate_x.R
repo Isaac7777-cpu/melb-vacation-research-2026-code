@@ -1,9 +1,11 @@
 source(file = "src/likelihood.R", verbose = TRUE)
+source(file = "src/restricted_likelihood.R", verbose = TRUE)
 
 library(optparse)
 
 # Simulation Function ---------------------------------------------------------
 simulate_slice <- function(
+  use_reml,
   slice_idx,
   res,
   obs,
@@ -39,21 +41,39 @@ simulate_slice <- function(
   D <- as.matrix(dist(t(fine_coords)))
 
   # Maximimum Likelihood Fit using the
-  xx <- MLE.fit(
-    obs,
-    D,
-    "Exp",
-    c(3),
-    nug = FALSE,
-    "LB",
-    lo.bound,
-    up.bound,
-    resolution = 3,
-    verbose = verbose
-  )
+  if (use_reml) {
+    xx <- REML.fit(
+      obs,
+      D,
+      "Exp",
+      c(3),
+      nug = FALSE,
+      "LB",
+      lo.bound,
+      up.bound,
+      resolution = res,
+      verbose = verbose
+    )
+  } else {
+    xx <- MLE.fit(
+      obs,
+      D,
+      "Exp",
+      c(3),
+      nug = FALSE,
+      "LB",
+      lo.bound,
+      up.bound,
+      resolution = res,
+      verbose = verbose,
+      nll_correction = profile.nll.correction
+    )
+  }
+
   if (verbose) {
     cat(str(xx))
   }
+
   xx
 }
 
@@ -85,6 +105,12 @@ option_list <- list(
     type = "character",
     default = "data/x_simulation.rds",
     help = "The simulation data file [default= %default]"
+  ),
+  make_option(
+    c("-r", "--use-reml"),
+    type = "logical",
+    default = FALSE,
+    help = "Whether to use REML instead of MLE"
   )
 )
 
@@ -94,6 +120,7 @@ opt <- parse_args(opt_parser)
 multi_resolution <- readRDS(file = opt[["data-file"]])
 verbose <- opt[["verbose"]]
 num_sim <- opt[["num-sim"]]
+use_reml <- opt[["use-reml"]]
 
 stopifnot(num_sim <= dim(multi_resolution$x_obs)[1])
 
@@ -110,6 +137,7 @@ sim_res <- list(
   npoints = multi_resolution$npoints,
   nsim = num_sim,
   nug = multi_resolution$nug,
+  use_reml = use_reml,
   # True parameters
   true_tausq = multi_resolution$tausq,
   true_alpha0 = multi_resolution$alpha0,
@@ -129,6 +157,7 @@ pb <- txtProgressBar(min = 0, max = num_sim, style = 3)
 
 for (slice_idx in seq_len(num_sim)) {
   xx <- simulate_slice(
+    use_reml = use_reml,
     slice_idx = slice_idx,
     res = multi_resolution$resolution,
     obs = multi_resolution$x_obs[slice_idx, ],
@@ -149,7 +178,11 @@ for (slice_idx in seq_len(num_sim)) {
 
 close(pb)
 
-saveRDS(object = sim_res, file = "data/simulation_res.rds")
+if (use_reml) {
+  saveRDS(object = sim_res, file = "data/simulation_res_reml.rds")
+} else {
+  saveRDS(object = sim_res, file = "data/simulation_res.rds")
+}
 
 if (interactive()) {
   load_res <- readRDS("data/simulation_res.rds")

@@ -1,4 +1,5 @@
-multi_resolution <- readRDS(file = "data/simulation_res.rds")
+# multi_resolution <- readRDS(file = "data/simulation_res.rds")
+multi_resolution <- readRDS(file = "data/simulation_res_reml.rds")
 # multi_resolution <- readRDS(file = "data/simulat_res_fake_nll.rds")
 
 all(multi_resolution$converge == 1)
@@ -10,8 +11,10 @@ exp(-mean(multi_resolution$nll / multi_resolution$npoints))
 # Average alpha0
 mean(multi_resolution$alpha0)
 
+nsim <- multi_resolution$nsim
+
 # Average phi, sigma^2
-colMeans(multi_resolution$theta[1:500, ])
+colMeans(multi_resolution$theta[1:nsim, ])
 # [1] 4.931721 1.971616
 #     phi      sigma^2
 
