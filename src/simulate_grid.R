@@ -4,7 +4,7 @@ source("lib/BFuns.R")
 set.seed(47)
 
 n <- 100
-ndraw <- 500
+ndraw <- 1000
 grid <- list(
   x = seq(from = 0, by = 1, length.out = n),
   y = seq(from = 0, by = 1, length.out = n)
