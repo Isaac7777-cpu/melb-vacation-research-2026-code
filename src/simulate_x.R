@@ -143,6 +143,9 @@ sim_res <- list(
   true_alpha0 = multi_resolution$alpha0,
   true_sigmasq = multi_resolution$sigmasq,
   true_phi = multi_resolution$phi,
+  #Observations
+  x_obs = multi_resolution$x_obs,
+  x.coord = multi_resolution$x.coord,
   # Estimated Parameters
   alpha0 = rep(0.0, num_sim),
   alpha0_var = rep(0.0, num_sim),
