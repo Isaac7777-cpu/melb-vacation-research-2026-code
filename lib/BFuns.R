@@ -169,3 +169,63 @@ cor.mat <- function(D, eta, cov_model, nug) {
   diag(cormat) <- 1 + 1e-8
   return(cormat)
 }
+
+# Build Q directly for the "kronecker(Diagonal(m), rep(1/r^2, r^2))" averaging case
+build_Q_blockavg <- function(coord, resolution, eta, cov_model, nug = FALSE) {
+  stopifnot(nrow(coord) == 2L)
+  m <- ncol(coord)
+  r <- resolution
+
+  shifts <- -(r - 1):(r - 1) # unique offset differences in 1D
+  w1 <- r - abs(shifts) # multiplicities in 1D
+  W <- outer(w1, w1, "*") # multiplicities in 2D  => (2r-1)x(2r-1)
+  norm <- r**4
+
+  DX <- matrix(rep(shifts, times = length(shifts)), nrow = length(shifts))
+  DY <- matrix(rep(shifts, each = length(shifts)), nrow = length(shifts))
+
+  # ---- correlation function (edit to match your BFuns.R / cor.mat definition) ----
+  rho <- function(d) {
+    cm <- tolower(cov_model)
+    if (cm %in% c("exp", "exponential")) {
+      # eta[1] = range/scale (example)
+      exp(-d / eta[1])
+    } else if (cm %in% c("gauss", "gaussian")) {
+      exp(-(d / eta[1])^2)
+    } else {
+      stop("Implement this cov_model in rho(): ", cov_model)
+    }
+  }
+
+  Q <- matrix(0, m, m)
+
+  for (i in seq_len(m)) {
+    Q[i, i] <- 0
+    xi <- coord[1, i]
+    yi <- coord[2, i]
+    for (j in i:m) {
+      dx0 <- xi - coord[1, j]
+      dy0 <- yi - coord[2, j]
+
+      # Use the W weighting to avoid repeated calculations
+      # as the correlation depends solely on the relative dist.
+      d <- sqrt((dx0 + DX)^2 + (dy0 + DY)^2) # (2r-1)x(2r-1)
+      Qij <- sum(W * rho(d)) / norm
+
+      Q[i, j] <- Qij
+      Q[j, i] <- Qij
+    }
+  }
+
+  # Nugget handling depends on how your cor.mat parameterises it.
+  # If your fine-level model is: (1-g)*rho(d) + g*I, then g affects only the diagonal of the fine matrix,
+  # and after averaging its diagonal contribution is scaled by 1/r^2.
+  #
+  # So if eta contains g as the last element when nug=TRUE, a common adjustment is:
+  if (isTRUE(nug)) {
+    g <- eta[length(eta)] # <-- adjust if your eta layout differs
+    diag(Q) <- diag(Q) + g / (r^2)
+  }
+
+  Q
+}

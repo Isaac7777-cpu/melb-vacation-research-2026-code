@@ -65,18 +65,3 @@ points(data_gal$X, data_gal$Y, cex = 0.3, col = "red")
 
 saveRDS(data_gal, file = "galData.Rds")
 saveRDS(data_mgs, file = "mgsData.Rds")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

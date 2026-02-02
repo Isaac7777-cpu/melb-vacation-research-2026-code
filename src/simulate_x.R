@@ -35,7 +35,7 @@ simulate_slice <- function(
 
   if (verbose) {
     cat(sprintf("The following should form %dx%d block\n", res, res))
-    print(fine_coords[, 1:9])
+    print(fine_coords[, 1:res**2])
   }
 
   D <- as.matrix(dist(t(fine_coords)))
