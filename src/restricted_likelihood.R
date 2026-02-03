@@ -151,7 +151,8 @@ REML.fit <- function(
     nll = nll,
     alpha0 = alpha_0,
     alpha_0_var = alpha_0_var,
-    eta = eta
+    eta = eta,
+    Q = Q
   )
 
   invisible(rlist)
@@ -301,7 +302,8 @@ REML.fit.memeff <- function(
     nll = nll,
     alpha0 = alpha_0,
     alpha_0_var = alpha_0_var,
-    eta = eta
+    eta = eta,
+    Q = Q
   )
 
   invisible(rlist)

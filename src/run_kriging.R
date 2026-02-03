@@ -23,7 +23,7 @@ kriging_res <- ordinary.kriging(
   obs = obs,
   coord = coord,
   alpha0 = alpha0,
-  sigmasq = sigmasq,
+  sigamsq = sigmasq,
   phi = phi
 )
 
