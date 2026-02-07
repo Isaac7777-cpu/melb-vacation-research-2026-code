@@ -171,7 +171,6 @@ cor.mat <- function(D, eta, cov_model, nug) {
 }
 
 # Build Q directly for the "kronecker(Diagonal(m), rep(1/r^2, r^2))" averaging case
-# WARNING: This function only works for odd resolution data.
 build_Q_blockavg <- function(coord, resolution, eta, cov_model, nug = FALSE) {
   stopifnot(nrow(coord) == 2L)
   m <- ncol(coord)

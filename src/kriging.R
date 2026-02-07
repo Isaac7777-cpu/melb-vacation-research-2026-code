@@ -18,7 +18,8 @@ ordinary.kriging <- function(
   coord,
   alpha0,
   sigmasq,
-  phi
+  phi,
+  obs.cor
 ) {
   # Compute target coordinates
   cat("[COV-COMP 1/3]: Building target coordiante block tensor...\n")
@@ -135,19 +136,39 @@ ordinary.kriging <- function(
   cat(sprintf("The following should form %dx%d block\n", src_res, src_res))
   print(fine_coords[, 1:src_res**2])
 
-  pairwise_dist <- as.matrix(dist(t(fine_coords)))
-  obs.cov.full <- sigmasq *
-    cor.mat(
-      D = pairwise_dist,
-      cov_model = "Exp",
-      eta = c(phi, sigmasq),
-      nug = FALSE
-    )
-  resolution_matrix <- kronecker(
-    diag(m),
-    matrix(rep(1 / src_res**2, src_res**2), nrow = 1)
-  )
-  obs.cov <- resolution_matrix %*% obs.cov.full %*% t(resolution_matrix)
+  # This code requires to much memory, calculate using for-loop instead.
+  if (missing(obs.cor)) {
+    if (src_res <= 5) {
+      cat("[COV-COMP]: Building the covariance matrix using direct building of full distance matrix.\n")
+      pairwise_dist <- as.matrix(dist(t(fine_coords)))
+      obs.cov.full <- sigmasq *
+        cor.mat(
+          D = pairwise_dist,
+          cov_model = "Exp",
+          eta = c(phi, sigmasq),
+          nug = FALSE
+        )
+      resolution_matrix <- kronecker(
+        diag(m),
+        matrix(rep(1 / src_res**2, src_res**2), nrow = 1)
+      )
+      obs.cov <- resolution_matrix %*% obs.cov.full %*% t(resolution_matrix)
+    } else {
+      cat("[COV-COMP]: Building the covariance matrix using for loop as a fall due to source resolution too large.\n")
+      cat("[COV-COMP]: Consider using the results from REML fit if the correlation matrix is available.\n")
+      Q <- build_Q_blockavg(
+        coord = coord,
+        resolution = src_res,
+        eta = c(phi, sigmasq),
+        cov_model = "Exp",
+        nug = FALSE
+      )
+      obs.cov <- sigmasq * Q
+    }
+  } else {
+    cat("[COV-COMP]: Retrieving the full covariance from the argument. Good!\n")
+    obs.cov <- sigmasq * obs.cor
+  }
 
   # Compute the BLUP
   cat("[BLUP-ANALYSIS 1/4]: Computing the blup...\n")

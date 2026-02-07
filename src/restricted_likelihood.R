@@ -180,10 +180,8 @@ profile.nll.reml.concentrated.memeff <- function(
   one <- rep(1, n)
   Linv_one <- forwardsolve(L, one)
   Linv_y <- forwardsolve(L, y)
-  # alpha_0 <- (t(Linv_one) %*% Linv_y) / (t(Linv_one) %*% Linv_one)
   alpha_0 <- crossprod(Linv_one, Linv_y) / crossprod(Linv_one, Linv_one)
   Linv_resid <- Linv_y - as.numeric(alpha_0) * Linv_one
-  # rss <- as.numeric(t(Linv_resid) %*% Linv_resid)
   rss <- as.numeric(crossprod(Linv_resid, Linv_resid))
   sigmasq <- rss / (n - 1)
 
@@ -195,7 +193,6 @@ profile.nll.reml.concentrated.memeff <- function(
     (n - 1) * log(sigmasq) +
     log_det_Q -
     log(n) +
-    # as.numeric(log(t(Linv_one) %*% Linv_one))
     log(as.numeric(crossprod(Linv_one, Linv_one)))
   return(0.5 * nll2.reml)
 }

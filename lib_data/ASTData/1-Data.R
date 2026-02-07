@@ -1,8 +1,9 @@
 rm(list = ls(all = TRUE)) # The line removes all variables from the current environment
-setwd("C:/Users/qihan/Desktop/Model_copy")
+# setwd("C:/Users/qihan/Desktop/Model_copy")
 
-setwd("~/Desktop/ASTData")
+# setwd("~/Desktop/ASTData")
 library("reticulate")
+use_condaenv(condaenv = "r-env", required = TRUE)
 require("reticulate")
 library(reticulate)
 library(dplyr)
