@@ -156,7 +156,7 @@ saveRDS(kriging_res, file = "data/analysis_kriging_results.rds")
 # > str(kriging_res)
 # List of 4
 #  $ nu      : num [1:869] 0.171 1.1729 0.5383 0.0719 1.995 ...
-#  $ lambda  : num [1:869, 1:1000] 7.29e-05 5.00e-04 2.30e-04 3.07e-05 8.51e-04 
+#  $ lambda  : num [1:869, 1:1000] 7.29e-05 5.00e-04 2.30e-04 3.07e-05 8.51e-04
 # ...
 #  $ blup    : num [1:869] 64.5 9.7 11.9 22.2 11.6 ...
 #  $ blup_var: num [1:869] 275 747 543 401 859 ...
@@ -164,6 +164,151 @@ saveRDS(kriging_res, file = "data/analysis_kriging_results.rds")
 kriging_res <- readRDS(file = "data/analysis_kriging_results.rds")
 
 # 4. Build Geostatistical Model -----------------------------------------------#
+
+library(sp)
+library(ggplot2)
+library(maps)
+library(geoR)
+
+str(kriging_res)
+str(y_obs)
+str(y_coord)
+
+# 4.1. Build the geodata ------------------------------------------------------#
+#   Although we can write the code from scratch as we did for the covariates   #
+# estimator above. However, I will just use the geoR function for simplicity   #
+# here. It should also give more detailed metrics that I wouldn't be bothered  #
+# to write-up myself.                                                          #
+# ---------------------------------------------------------------------------- #
+
+data <- as.data.frame(cbind(
+  mgs = y_obs,
+  gal_krig = kriging_res$blup,
+  X = y_coord[, 1],
+  Y = y_coord[, 2]
+))
+str(data)
+dfgeodata <- as.geodata(data, coords.col = 3:4, data.col = 1, covar.col = 2)
+dist_max <- max(dist(dfgeodata$coords))
+# [1] 1855.936
+plot(
+  variog(dfgeodata, option = "bin", max.dist = 1000),
+  xlab = "h",
+  ylab = "variogram"
+)
+lines.variomodel(
+  seq(0, 900, l = 100),
+  cov.pars = c(0.0035, 120),
+  cov.model = "mat",
+  kap = 0.5,
+  nug = 0.002
+)
+
+# 4.2. Baseline Model ---------------------------------------------------------#
+#   Now, before using the model, let's just fit a model without the observation#
+# so that we can compare the model later on.                                   #
+# ---------------------------------------------------------------------------- #
+
+m_baseline <- likfit(dfgeodata, ini = c(0.0035, 120), nug = 0.002)
+
+# Convergence message... (Did converge)
+m_baseline$info.minimisation.function
+
+# Summary Message
+summary(m_baseline)
+# Summary of the parameter estimation
+# -----------------------------------
+# Estimation method: maximum likelihood
+#
+# Parameters of the mean component (trend):
+#   beta
+# 8.7213
+#
+# Parameters of the spatial component:
+#    correlation function: exponential
+#       (estimated) variance parameter sigmasq (partial sill) =  0.0053
+#       (estimated) cor. fct. parameter phi (range parameter)  =  23.45
+#    anisotropy parameters:
+#       (fixed) anisotropy angle = 0  ( 0 degrees )
+#       (fixed) anisotropy ratio = 1
+#
+# Parameter of the error component:
+#       (estimated) nugget =  4e-04
+#
+# Transformation parameter:
+#       (fixed) Box-Cox parameter = 1 (no transformation)
+#
+# Practical Range with cor=0.05 for asymptotic range: 70.25815
+#
+# Maximised Likelihood:
+#    log.L n.params      AIC      BIC
+#   "1189"      "4"  "-2369"  "-2350"
+#
+# non spatial model:
+#    log.L n.params      AIC      BIC
+#   "1079"      "2"  "-2154"  "-2145"
+#
+# Call:
+# likfit(geodata = dfgeodata, ini.cov.pars = c(0.0035, 120), nugget = 0.002)
+#
+
+# 4.3. Model with covariates --------------------------------------------------#
+#   Then, we shall fit the model with a linear trend using the corresponding   #
+# `gal_krig` covariates. I am also using REML here to avoid biases on the      #
+# variance-related parameters.                                                 #
+# ---------------------------------------------------------------------------- #
+
+names(dfgeodata$covariate)
+# [1] "gal_krig"
+m_linear_trend <- likfit(
+  dfgeodata,
+  ini = c(0.0035, 120),
+  nug = 0.002,
+  trend = ~gal_krig,
+  lik.method = "ML"
+)
+
+# Convergence message... (Did converge)
+m_linear_trend$info.minimisation.function
+
+# Summary Message
+summary(m_linear_trend)
+# Summary of the parameter estimation
+# -----------------------------------
+# Estimation method: maximum likelihood
+#
+# Parameters of the mean component (trend):
+#  beta0  beta1
+# 8.7182 0.0002
+#
+# Parameters of the spatial component:
+#    correlation function: exponential
+#       (estimated) variance parameter sigmasq (partial sill) =  0.0053
+#       (estimated) cor. fct. parameter phi (range parameter)  =  23.65
+#    anisotropy parameters:
+#       (fixed) anisotropy angle = 0  ( 0 degrees )
+#       (fixed) anisotropy ratio = 1
+#
+# Parameter of the error component:
+#       (estimated) nugget =  5e-04
+#
+# Transformation parameter:
+#       (fixed) Box-Cox parameter = 1 (no transformation)
+#
+# Practical Range with cor=0.05 for asymptotic range: 70.83834
+#
+# Maximised Likelihood:
+#    log.L n.params      AIC      BIC
+#   "1190"      "5"  "-2369"  "-2345"
+#
+# non spatial model:
+#    log.L n.params      AIC      BIC
+#   "1080"      "3"  "-2155"  "-2140"
+#
+# Call:
+# likfit(geodata = dfgeodata, trend = ~gal_krig, ini.cov.pars = c(0.0035,
+#     120), nugget = 0.002, lik.method = "ML")
+#
 
 # 5. Some Visualisations for the poster ---------------------------------------#
 save_dir <- "../poster/figures/"
