@@ -345,7 +345,7 @@ points(
 
 legend(
   "topright",
-  legend = c("MGS (2x2)", "GAL (82x82)"),
+  legend = c("MGS (0.184x0.184)", "GAL (0.082x0.082)"),
   pch = 16,
   col = c(adjustcolor("black", 0.6), adjustcolor("red", 0.6)),
   pt.cex = 0.8,
